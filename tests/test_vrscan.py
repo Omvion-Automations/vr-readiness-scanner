@@ -63,5 +63,26 @@ class Basics(unittest.TestCase):
         self.assertEqual(vrscan.report("x", "t", c)["score"], 88)
 
 
+class SteamMode(unittest.TestCase):
+    def fake(self, tags, genres=()):
+        data = {"name": "Test", "genres": [{"description": g} for g in genres], "categories": [{"description": "Single-player"}]}
+        orig = vrscan.steam_data
+        vrscan.steam_data = lambda appid: (data, tags, {"total_reviews": 1000, "total_positive": 950})
+        try:
+            return {c["check"]: c for c in vrscan.score_steam("1")["checks"]}
+        finally:
+            vrscan.steam_data = orig
+
+    def test_pixel_open_world_is_2d(self):   # Stardew Valley regression: "Open World" must not beat "2D" / "Pixel Graphics"
+        self.assertEqual(self.fake(["Farming Sim", "Pixel Graphics", "Open World", "2D"])["3D world"]["points"], 0)
+
+    def test_portal2_platformer_is_3d(self):   # "Platformer" alone is not a 2D signal
+        tags = ["Singleplayer", "Platformer", "Puzzle", "First-Person", "Puzzle Platformer", "3D Platformer", "FPS"]
+        self.assertEqual(self.fake(tags)["3D world"]["points"], 25)
+
+    def test_first_person_3d(self):
+        self.assertEqual(self.fake(["FPS", "3D", "Atmospheric"])["3D world"]["points"], 25)
+
+
 if __name__ == "__main__":
     unittest.main()

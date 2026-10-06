@@ -24,17 +24,32 @@ Strong candidate: the basics a VR port needs are already in place.
 
 ## Scan your game
 
-**Windows:** download this repo (green **Code** button, then **Download ZIP**), unzip it, and drag your game folder
-onto `vrscan.bat`.
+**One line, any terminal** (Windows, Mac, Linux; needs Python 3):
 
-**Mac / Linux:** one line in a terminal.
+```sh
+python -c "import urllib.request as u;exec(u.urlopen('https://raw.githubusercontent.com/Omvion-Automations/vr-readiness-scanner/main/vrscan.py').read())"
+```
+
+On Mac and Linux type `python3` instead of `python`; on Windows `py` works too. It asks for your game folder (drag it
+into the window) or a Steam store link, and prints the report in colour. Nothing is installed.
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://raw.githubusercontent.com/Omvion-Automations/vr-readiness-scanner/main/vrscan.py -OutFile vrscan.py; py vrscan.py
+```
+
+**Mac / Linux:**
 
 ```sh
 curl -sO https://raw.githubusercontent.com/Omvion-Automations/vr-readiness-scanner/main/vrscan.py && python3 vrscan.py
 ```
 
-It asks for your game folder (drag it into the window) or a Steam store link, and prints the report. You can also pass
-it straight away:
+**No terminal?** Download this repo (green **Code** button, **Download ZIP**), unzip it, and drag your game folder onto
+`vrscan.bat` (Windows). No Python yet? Get it from [python.org](https://www.python.org/downloads/) or run
+`winget install Python.Python.3.12`.
+
+Once you have the file, you can pass the game straight away:
 
 ```sh
 python3 vrscan.py ~/Games/MyGame                                   # a built game or a Unity / Unreal / Godot project

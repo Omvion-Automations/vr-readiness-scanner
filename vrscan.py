@@ -322,6 +322,7 @@ def steam_data(appid):
 
 FIRST, THIRD = {"first-person", "fps", "immersive sim"}, {"third person", "third-person shooter"}
 TOPDOWN = {"top-down", "isometric", "top-down shooter", "rts"}
+STRONG2D = {"2d", "pixel graphics", "side scroller", "2d platformer", "visual novel", "text-based", "card game"}
 FLAT = {"2d", "pixel graphics", "side scroller", "2d platformer", "platformer", "metroidvania", "visual novel", "card game", "text-based", "bullet hell"}
 CALM = {"exploration", "puzzle", "walking simulator", "simulation", "horror", "atmospheric", "adventure", "racing", "flight", "relaxing", "building", "sandbox", "survival"}
 INTENSE = {"fast-paced", "precision platformer", "bullet hell", "arena shooter", "fighting", "rhythm", "competitive", "pvp", "moba"}
@@ -337,10 +338,11 @@ def score_steam(raw):
     c = []
 
     w = Check("3D world", 25)
-    if "3d" in t or words & (FIRST | THIRD | {"open world", "3d platformer"}):
-        w.set(25, "3D", "A 3D world is the single biggest factor: you can stand inside it.")
-    elif words & FLAT:
+    strong3d = "3d" in t or words & (FIRST | THIRD | {"3d platformer"})
+    if not strong3d and words & STRONG2D:   # an explicit 2D / pixel tag beats soft hints like "open world" (Stardew Valley)
         w.set(0, "2D", "2D games don't translate to VR without being re-imagined.")
+    elif strong3d or words & {"open world"}:
+        w.set(25, "3D", "A 3D world is the single biggest factor: you can stand inside it.")
     else:
         w.set(12, "unclear from tags", "Store tags don't say 3D or 2D clearly.")
     c.append(w)
@@ -400,18 +402,32 @@ def score_steam(raw):
 
 # ---------------------------------------------------------------- output
 
-def bar(points, mx, width=10):
+def bar(points, mx, width=10, fancy=False):
     n = round(width * points / mx) if mx else 0
-    return "#" * n + "." * (width - n)
+    return ("\u2588" * n + "\u2591" * (width - n)) if fancy else ("#" * n + "." * (width - n))
+
+
+def colors():
+    """ANSI colour only on a real terminal; NO_COLOR or a pipe turns it off. Windows 10+ needs VT mode switched on."""
+    if os.environ.get("NO_COLOR") or not sys.stdout.isatty():
+        return {}
+    if os.name == "nt":
+        os.system("")   # enables ANSI escape handling in the Windows console
+    return {"b": "\033[1m", "d": "\033[2m", "g": "\033[32m", "y": "\033[33m", "r": "\033[31m", "c": "\033[36m", "m": "\033[35m", "x": "\033[0m"}
 
 
 def print_report(r):
-    print("\n%s  (%s)" % (r["subject"], r["mode"]))
-    print("VR readiness: %d / 100\n%s\n" % (r["score"], r["verdict"]))
+    k = colors()
+    c_ = lambda name, t: k.get(name, "") + t + k.get("x", "") if k else t
+    tone = lambda got, top: "g" if got >= 0.75 * top else "y" if got >= 0.35 * top else "r"
+    print("\n%s  %s" % (c_("b", r["subject"]), c_("d", "(%s)" % r["mode"])))
+    print("VR readiness: %s\n%s\n" % (c_("b", c_(tone(r["score"], 100), "%d / 100" % r["score"])), c_(tone(r["score"], 100), r["verdict"])))
     for c in r["checks"]:
-        print("  %-20s %s %2d/%-2d  %s" % (c["check"], bar(c["points"], c["max"]), c["points"], c["max"], c["found"]))
-        print("  %-20s %s" % ("", c["note"]))
-    print("\n%s\n" % r["disclaimer"])
+        print("  %-20s %s %s  %s" % (c["check"], c_(tone(c["points"], c["max"] or 1), bar(c["points"], c["max"], fancy=bool(k))),
+                                     "%2d/%-2d" % (c["points"], c["max"]), c_("c", c["found"])))
+        print("  %-20s %s" % ("", c_("d", c["note"])))
+    print("\n%s\n" % c_("d", r["disclaimer"]))
+    print("%s %s\n" % (c_("m", "Want the full picture?"), "Free detailed VR readiness report: https://omvion.org"))
 
 
 def main(argv=None):
