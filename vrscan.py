@@ -416,10 +416,20 @@ def print_report(r):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="vrscan", description="Quick, honest VR-readiness estimate for a flat game.")
-    ap.add_argument("target", nargs="+", help="a folder, or: steam <appid|store url>")
+    ap.add_argument("target", nargs="*", help="a game folder, a Steam store link, or: steam <appid>  (none = ask)")
     ap.add_argument("--json", action="store_true", help="print JSON")
     ap.add_argument("--version", action="version", version="vrscan " + __version__)
     a = ap.parse_args(argv)
+    if not a.target:   # double-clicked or run bare: just ask
+        try:
+            got = input("Drag your game folder here, or paste a Steam store link, then press Enter:\n> ").strip().strip('"').strip("'")
+        except EOFError:
+            got = ""
+        if not got:
+            ap.error("nothing to scan")
+        a.target = [got]
+    if "store.steampowered.com/app/" in a.target[0] or a.target[0].isdigit():   # a pasted link or bare app id
+        a.target = ["steam", a.target[0]]
     if a.target[0] == "steam":
         if len(a.target) < 2:
             ap.error("steam needs an app id or store URL")
