@@ -390,7 +390,7 @@ def score_steam(raw):
           "%d reviews, %d%% positive" % (total, round(share * 100)) if total else "no reviews", "A well-loved game has players who'd buy it again in VR.")
     c.append(d)
 
-    vr = sorted(x for x in cats if "vr" in x)
+    vr = sorted({c.get("description", "") for c in data.get("categories", []) if c.get("id") in (31, 53, 54) or "vr" in c.get("description", "").lower()})
     out = report(data.get("name", appid), "steam", c, {"appid": int(appid), "url": "https://store.steampowered.com/app/%s/" % appid, "tags": tags,
                                                        "already_vr": bool(vr), "vr_categories": vr}, flat=w.found == "2D")
     if vr:
