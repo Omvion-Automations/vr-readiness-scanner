@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vrscan"
+version = "0.1.0"
+description = "Quick, honest VR-readiness estimate for a flat game: from its files or its Steam page."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [{name = "Axton McGoran"}]
+keywords = ["vr", "openxr", "gamedev", "unity", "unreal", "godot", "steam"]
+classifiers = ["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Topic :: Games/Entertainment"]
+
+[project.urls]
+Homepage = "https://github.com/Omvion-Automations/vr-readiness-scanner"
+
+[project.scripts]
+vrscan = "vrscan:main"
+
+[tool.setuptools]
+py-modules = ["vrscan"]
